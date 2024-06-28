@@ -1,4 +1,32 @@
-let app = require("./app");
+const app = require("./app");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+
+let DBConnection = process.env.DATABASE_CONNECTION.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD
+);
+
+DBConnection = DBConnection.replace(
+  "<USERNAME>",
+  process.env.DATABASE_USERNAME
+);
+
+console.log(DBConnection);
+
+//mongoose connection ---
+mongoose
+  .connect(DBConnection, {
+    useNewUrlParser: true,
+  })
+  .then((conn) => {
+    console.log(conn);
+    console.log("connected to mongodb successfully..");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
 
 let port = process.env.PORT || 3000;
 

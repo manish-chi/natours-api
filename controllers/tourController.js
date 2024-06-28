@@ -1,8 +1,6 @@
 const fs = require("fs");
+const Tour = require("../models/tourModel");
 
-let tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
-);
 
 exports.CheckID = (req, res, next, value) => {
   if (value > tours.length) {
@@ -26,7 +24,6 @@ exports.checkBody = (req, res, next) => {
   next();
 };
 
-
 function writeToFile(tours, tour, res) {
   fs.writeFile(
     `${__dirname}/../dev-data/data/tours-simple.json`,
@@ -47,9 +44,12 @@ function writeToFile(tours, tour, res) {
   );
 }
 
-exports.getAllTours = (req, res) => {
+exports.getAllTours = async (req, res) => {
+    console.log(Tour);
+  const tours = await Tour.find();
+  
   return res.status(200).json({
-    NumberOfTours: tours.length,
+    results: tours.length,
     data: tours,
   });
 };

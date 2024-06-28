@@ -7,7 +7,7 @@ router.param("id", tourController.CheckID);
 router
   .route("/")
   .get(tourController.getAllTours)
-  .post(tourController.checkBody,tourController.createTour);
+  .post(tourController.checkBody, tourController.createTour);
 
 router
   .route("/api/v1/tours/:id")
