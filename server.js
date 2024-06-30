@@ -12,7 +12,7 @@ DBConnection = DBConnection.replace(
   process.env.DATABASE_USERNAME
 );
 
-console.log(DBConnection);
+//console.log(DBConnection);
 
 //mongoose connection ---
 mongoose
@@ -20,15 +20,14 @@ mongoose
     useNewUrlParser: true,
   })
   .then((conn) => {
-    console.log(conn);
+    //console.log(conn);
     console.log("connected to mongodb successfully..");
   })
   .catch((err) => {
     console.log(err);
   });
 
-
-let port = process.env.PORT || 3000;
+let port = 3000;
 
 app.listen(port, () => {
   console.log(`app is listening on port number: ${port}`);

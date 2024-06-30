@@ -10,7 +10,7 @@ router
   .post(tourController.checkBody, tourController.createTour);
 
 router
-  .route("/api/v1/tours/:id")
+  .route("/:id")
   .get(tourController.getTour)
   .patch(tourController.updateTour)
   .delete(tourController.deleteTour);

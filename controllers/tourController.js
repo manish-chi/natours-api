@@ -1,14 +1,24 @@
 const fs = require("fs");
 const Tour = require("../models/tourModel");
 
+exports.CheckID = async (req, res, next, value) => {
+  // if (value > tours.length) {
+  //   return res.status(404).json({
+  //     status: "fail",
+  //     message: "Invalid ID",
+  //   });
+  // }
 
-exports.CheckID = (req, res, next, value) => {
-  if (value > tours.length) {
+  let tour = await Tour.findById(value);
+
+  if (!tour) {
     return res.status(404).json({
       status: "fail",
       message: "Invalid ID",
     });
   }
+
+  req.tour = tour;
 
   next();
 };
@@ -45,20 +55,67 @@ function writeToFile(tours, tour, res) {
 }
 
 exports.getAllTours = async (req, res) => {
-    console.log(Tour);
-  const tours = await Tour.find();
-  
+  let queryObj = {};
+
+  if (req.query) {
+    queryObj = Object.assign({}, req.query);
+  }
+
+  let excludedlist = ["page", "sort", "fields", "limit"];
+
+  excludedlist.forEach((element) => {
+    delete queryObj[element];
+  });
+
+  console.log(queryObj);
+
+  //Advanced Filtering
+  let queryString = JSON.stringify(queryObj);
+  queryString = queryString.replace(
+    /\b(gte|gt|lt|lte)\b/g,
+    (match) => `$${match}`
+  );
+
+  queryObj = JSON.parse(queryString);
+
+  let query = Tour.find(queryObj);
+  //2)SORTING..
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    query = query.sort(sortBy);
+  }
+
+  if (req.query.limit) {
+    console.log(req.query.limit);
+    query = query.limit(req.query.limit);
+  }
+
+  if (req.query.fields) {
+    const fields = req.query.fields.split(",").join(" ");
+
+    query = query.select(fields);
+  }
+
+  //pagination..
+
+  let page = req.query.page || 1;
+  let limit = req.query.limit || 100;
+  let skip = (page - 1) * limit;
+  query = query.skip(skip).limit(limit);
+
+  console.log(`queryString replaced! ${query}`);
+
+  //Excecute Query
+  let tours = await query;
+
   return res.status(200).json({
     results: tours.length,
     data: tours,
   });
 };
 
-exports.getTour = (req, res) => {
-  let { id } = req.params;
-  id = id * 1;
-
-  let tour = tours.find((ele) => ele.id == id);
+exports.getTour = async (req, res) => {
+  let tour = req.tour;
 
   return res.status(200).json({
     status: "success",
@@ -66,58 +123,43 @@ exports.getTour = (req, res) => {
   });
 };
 
-exports.createTour = (req, res) => {
-  let tour = req.body;
-  let id = tours.length;
-  tour = Object.assign(tour, { id: id });
-  tours.push(tour);
-  writeToFile(tours, tour, res);
-};
-
-exports.updateTour = (req, res) => {
-  let { id } = req.params;
-  id = id * 1;
-  let tour = tours[id];
-
-  let isPropValid = Object.keys(req.body).every((prop) =>
-    tour.hasOwnProperty(prop)
-  );
-
-  if (isPropValid) {
-    for (let property in req.body) {
-      if (tour.hasOwnProperty(property)) {
-        tour[property] = req.body[property];
-      }
-    }
+exports.createTour = async (req, res) => {
+  try {
+    let tour = req.body;
+    tour = await Tour.create(tour);
     return res.status(200).json({
       status: "success",
-      message: "Tour have been updated",
-      data: tour,
+      data: {
+        tour,
+      },
     });
-  } else {
-    return res.status(500).json({
+  } catch (err) {
+    return res.status(400).json({
       status: "failed",
-      message: "Sorry, couldn't find the given property!",
+      message: `Failed to create Tour ${err}`,
     });
   }
 };
 
-exports.deleteTour = (req, res) => {
-  let id = req.params.id * 1;
+exports.updateTour = async (req, res) => {
+  let tour = req.tour;
 
-  let tour = tours.filter((tour) => {
-    return tour.id == id;
+  tour = await Tour.findOneAndUpdate({ _id: tour._id }, req.body, {
+    new: true,
   });
+  return res.status(200).json({
+    status: "success",
+    message: "Tour have been updated",
+    data: tour,
+  });
+};
 
-  if (tour) {
-    let updatedTours = tours.filter((tour) => {
-      return tour.id != id;
-    });
-    writeToFile(updatedTours, tour, res);
-  } else {
-    return res.status(404).json({
-      status: "failed",
-      message: "Tour with ID not found!",
-    });
-  }
+exports.deleteTour = async (req, res) => {
+  let tour = req.tour;
+  await Tour.findOneAndDelete({ _id: tour._id });
+
+  return res.status(200).json({
+    status: "success",
+    data: tour,
+  });
 };
