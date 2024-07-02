@@ -3,7 +3,7 @@ const Tour = require("../models/tourModel");
 const AppFeatures = require("../utils/appFeatures");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
-const mongoose = require("mongoose");
+
 
 // exports.CheckID = catchAsync(async (req, res, next, value) => {
 //   console.log(value);
@@ -49,7 +49,7 @@ function writeToFile(tours, tour, res) {
 }
 
 exports.getAllTours = catchAsync(async (req, res) => {
-  throw new Error("uncertain", 500);
+ 
   const appFeatures = new AppFeatures(Tour.find(), req.query)
     .filter()
     .sort()

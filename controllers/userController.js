@@ -1,34 +1,63 @@
-exports.getUsers = (req, res) => {
-  return res.status(500).json({
-    status: "error",
-    message: "This route has not been implemented",
-  });
-};
+const User = require("../models/usermodel");
+const catchAsync = require("../utils/catchAsync");
 
-exports.createUser = (req, res) => {
-  return res.status(500).json({
-    status: "error",
-    message: "This route has not been implemented",
+exports.getUsers = catchAsync(async (req, res, next) => {
+  const users = await User.find();
+  return res.status(200).json({
+    status: "success",
+    data: {
+      users,
+    },
   });
-};
+});
 
-exports.getUser = (req, res) => {
-  return res.status(500).json({
-    status: "error",
-    message: "This route has not been implemented",
-  });
-};
+exports.createUser = catchAsync(async (req, res, next) => {
+  const user = await User.create(req.body);
 
-exports.updateUser = (req, res) => {
-  return res.status(500).json({
-    status: "error",
-    message: "This route has not been implemented",
+  return res.status(201).json({
+    status: "success",
+    data: user,
   });
-};
+});
 
-exports.deleteUser = (req, res) => {
-  return res.status(500).json({
-    status: "error",
-    message: "This route has not been implemented",
+exports.getUser = catchAsync(async (req, res, next) => {
+  let user = await User.findById(req.params.id);
+  if (!user) throw new AppError(404, "User ID is invalid!");
+
+  return res.status(200).json({
+    status: "success",
+    data: {
+      user,
+    },
   });
-};
+});
+
+exports.updateUser = catchAsync(async (req, res, next) => {
+  let user = await User.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!user) throw new AppError(404, "User ID is invalid!");
+
+  return res.status(200).json({
+    status: "success",
+    data: {
+      user,
+    },
+  });
+});
+
+exports.deleteUser = catchAsync(async (req, res, next) => {
+  let user = await User.findByIdAndDelete(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  return res.status(200).json({
+    status: "success",
+    data: {
+      user,
+    },
+  });
+});
