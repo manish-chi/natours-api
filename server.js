@@ -22,13 +22,26 @@ mongoose
   .then((conn) => {
     //console.log(conn);
     console.log("connected to mongodb successfully..");
-  })
-  .catch((err) => {
-    console.log(err);
   });
 
 let port = 3000;
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`app is listening on port number: ${port}`);
+});
+
+//used for catching async errors in server.js
+process.on("unhandledRejection", (err) => {
+  console.log(err.name, err.message);
+  server.close(() => {
+    process.exit(1);
+  });
+});
+
+//used for catching sync errors in server.js
+process.on("uncaughtException", (err) => {
+  console.log(err.name, err.message);
+  server.close(() => {
+    process.exit(1);
+  });
 });

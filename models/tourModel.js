@@ -6,6 +6,7 @@ let tourSchema = new mongoose.Schema(
   {
     name: {
       type: String,
+      unique : true,
       trim: true,
       required: [true, "a tour must have name."],
     },
@@ -96,8 +97,8 @@ tourSchema.post("save", (doc, next) => {
 });
 
 tourSchema.pre(/^find/, function (next) {
-  this.find({ secretTour: { $ne: false } });
-  this.start = Date.now();
+  //this.find({ secretTour: { $ne: false } });
+  //this.start = Date.now();
   next();
 });
 

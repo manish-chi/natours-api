@@ -1,27 +1,21 @@
 const fs = require("fs");
 const Tour = require("../models/tourModel");
+const AppFeatures = require("../utils/appFeatures");
+const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
+const mongoose = require("mongoose");
 
-exports.CheckID = async (req, res, next, value) => {
-  // if (value > tours.length) {
-  //   return res.status(404).json({
-  //     status: "fail",
-  //     message: "Invalid ID",
-  //   });
-  // }
+// exports.CheckID = catchAsync(async (req, res, next, value) => {
+//   console.log(value);
+//   let tour = await Tour.findById(value);
 
-  let tour = await Tour.findById(value);
-
-  if (!tour) {
-    return res.status(404).json({
-      status: "fail",
-      message: "Invalid ID",
-    });
-  }
-
-  req.tour = tour;
-
-  next();
-};
+//   if (!tour) {
+//     next(new AppError(404, "Invalid Id!"));
+//   } else {
+//     req.tour = tour;
+//     next();
+//   }
+// });
 
 exports.checkBody = (req, res, next) => {
   if (!req.body.name || !req.body.price) {
@@ -54,99 +48,59 @@ function writeToFile(tours, tour, res) {
   );
 }
 
-exports.getAllTours = async (req, res) => {
-  let queryObj = {};
-
-  if (req.query) {
-    queryObj = Object.assign({}, req.query);
-  }
-
-  let excludedlist = ["page", "sort", "fields", "limit"];
-
-  excludedlist.forEach((element) => {
-    delete queryObj[element];
-  });
-
-  console.log(queryObj);
-
-  //Advanced Filtering
-  let queryString = JSON.stringify(queryObj);
-  queryString = queryString.replace(
-    /\b(gte|gt|lt|lte)\b/g,
-    (match) => `$${match}`
-  );
-
-  queryObj = JSON.parse(queryString);
-
-  let query = Tour.find(queryObj);
-  //2)SORTING..
-  if (req.query.sort) {
-    const sortBy = req.query.sort.split(",").join(" ");
-    query = query.sort(sortBy);
-  }
-
-  if (req.query.limit) {
-    console.log(req.query.limit);
-    query = query.limit(req.query.limit);
-  }
-
-  if (req.query.fields) {
-    const fields = req.query.fields.split(",").join(" ");
-
-    query = query.select(fields);
-  }
-
-  //pagination..
-
-  let page = req.query.page || 1;
-  let limit = req.query.limit || 100;
-  let skip = (page - 1) * limit;
-  query = query.skip(skip).limit(limit);
-
-  console.log(`queryString replaced! ${query}`);
+exports.getAllTours = catchAsync(async (req, res) => {
+  throw new Error("uncertain", 500);
+  const appFeatures = new AppFeatures(Tour.find(), req.query)
+    .filter()
+    .sort()
+    .limit()
+    .pagination();
 
   //Excecute Query
-  let tours = await query;
+  let tours = await appFeatures.query;
 
   return res.status(200).json({
     results: tours.length,
     data: tours,
   });
-};
+});
 
-exports.getTour = async (req, res) => {
-  let tour = req.tour;
+exports.getTour = catchAsync(async (req, res, next) => {
+  //const id = new mongoose.Types.ObjectId(req.params.id);
 
-  return res.status(200).json({
+  let tour = await Tour.findById(req.params.id);
+  console.log("This is the tour data:" + tour);
+
+  if (!tour) {
+    return next(new AppError(404, "Invalid Id!"));
+  }
+  res.status(200).json({
     status: "success",
     data: tour,
   });
-};
+});
 
-exports.createTour = async (req, res) => {
-  try {
-    let tour = req.body;
-    tour = await Tour.create(tour);
-    return res.status(200).json({
-      status: "success",
-      data: {
-        tour,
-      },
-    });
-  } catch (err) {
-    return res.status(400).json({
-      status: "failed",
-      message: `Failed to create Tour ${err}`,
-    });
-  }
-};
-
-exports.updateTour = async (req, res) => {
-  let tour = req.tour;
-
-  tour = await Tour.findOneAndUpdate({ _id: tour._id }, req.body, {
-    new: true,
+exports.createTour = catchAsync(async (req, res) => {
+  let tour = req.body;
+  tour = await Tour.create(tour);
+  return res.status(200).json({
+    status: "success",
+    data: {
+      tour,
+    },
   });
+});
+
+exports.updateTour = async (req, res, next) => {
+  let tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!tour) {
+    return next(new AppError(404, "No Document with given ID found!"));
+  }
+
   return res.status(200).json({
     status: "success",
     message: "Tour have been updated",
@@ -155,8 +109,11 @@ exports.updateTour = async (req, res) => {
 };
 
 exports.deleteTour = async (req, res) => {
-  let tour = req.tour;
-  await Tour.findOneAndDelete({ _id: tour._id });
+  let tour = await Tour.findByIdAndDelete(req.params.id);
+
+  if (!tour) {
+    return next(new AppError(404, "no valid ID formed!"));
+  }
 
   return res.status(200).json({
     status: "success",
