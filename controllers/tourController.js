@@ -4,7 +4,6 @@ const AppFeatures = require("../utils/appFeatures");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
-
 // exports.CheckID = catchAsync(async (req, res, next, value) => {
 //   console.log(value);
 //   let tour = await Tour.findById(value);
@@ -49,7 +48,6 @@ function writeToFile(tours, tour, res) {
 }
 
 exports.getAllTours = catchAsync(async (req, res) => {
- 
   const appFeatures = new AppFeatures(Tour.find(), req.query)
     .filter()
     .sort()

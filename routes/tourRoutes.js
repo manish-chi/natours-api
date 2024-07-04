@@ -19,7 +19,7 @@ router
     tourController.updateTour
   )
   .delete(
-    authController.restrictTo(["user", "lead-guide","guide"]),
+    authController.restrictTo(["user", "lead-guide", "guide"]),
     tourController.deleteTour
   );
 

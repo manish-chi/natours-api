@@ -16,9 +16,7 @@ DBConnection = DBConnection.replace(
 
 //mongoose connection ---
 mongoose
-  .connect(DBConnection, {
-    useNewUrlParser: true,
-  })
+  .connect(DBConnection)
   .then((conn) => {
     //console.log(conn);
     console.log("connected to mongodb successfully..");
