@@ -95,7 +95,7 @@ let tourSchema = new mongoose.Schema(
         day: Number,
       },
     ],
-    guides: Array,
+    guides: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
     createdAt: {
       type: Date,
       default: Date.now(),
@@ -117,10 +117,21 @@ tourSchema.pre("save", function (next) {
   next();
 });
 
-tourSchema.pre("save", async function (next) {
-  let guideQueries = this.guides.map((id) => User.findById(id));
-  this.guides = await Promise.all(guideQueries);
-  console.log(this.guides);
+//This is embedding of guides. You can mention guides as Array in Tour Model and embeed.
+// tourSchema.pre("save", async function (next) {
+//   let guideQueries = this.guides.map((id) => User.findById(id));
+//   this.guides = await Promise.all(guideQueries);
+//   console.log(this.guides);
+//   next();
+// });
+
+//populate child references...
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "guides",
+    select: "-__v",
+  });
+
   next();
 });
 
