@@ -3,6 +3,7 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/mailer");
+const crypto = require('crypto');
 
 exports.signup = catchAsync(async (req, res, next) => {
   const user = await User.create({
