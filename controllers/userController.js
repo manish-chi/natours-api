@@ -1,5 +1,33 @@
 const User = require("../models/usermodel");
 const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
+
+let filterBody = (req, ...allowedFields) => {
+  let newUser = {};
+  allowedFields.forEach((field) => {
+    if (Object.keys(req.user).includes(field)) {
+      newUser[field] = req[field];
+    }
+  });
+  return newUser;
+};
+
+exports.updateMe = catchAsync(async (req, res, next) => {
+  if (!req.user.name || !req.user.email) {
+    next(new AppError(401, "Please provide name and email address correctly"));
+  }
+
+  let newUser = filterBody(req, ["name", "email"]);
+  await User.findOneAndUpdate({ _id: req.user._id }, newUser, {
+    new: true,
+    runValidators: true,
+  });
+
+  return res.status(200).json({
+    status: "success",
+    message: "user has been updated!",
+  });
+});
 
 exports.getUsers = catchAsync(async (req, res, next) => {
   const users = await User.find();
@@ -56,6 +84,7 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 
   return res.status(200).json({
     status: "success",
+    message: "user is deleted!",
     data: {
       user,
     },

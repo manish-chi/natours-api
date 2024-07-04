@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     min: [5, "password must be min. 5 characters."],
     max: [19, "password can be max. 19 characters"],
+    select: false,
   },
   role: {
     type: String,
@@ -40,8 +41,12 @@ const userSchema = new mongoose.Schema({
       },
       message: "Passwords are not the same!",
     },
+    select: false,
   },
-  passwordChangedAt: Date,
+  passwordChangedAt: {
+    type : Date,
+    select : false,
+  },
   passwordResetToken: String,
   passwordResetExpires: Date,
 });

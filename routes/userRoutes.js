@@ -13,7 +13,18 @@ router.patch(
   authController.protect,
   authController.updatePassword
 );
-router.route("/").get(userController.getUsers).post(userController.createUser);
+
+router
+  .route("/")
+  .get(
+    authController.restrictTo(["admin"]),
+    userController.getUsers
+  )
+  .post(userController.createUser);
+
+router
+  .route("/updateMe")
+  .patch(authController.protect, userController.updateMe);
 
 router
   .route("/:id")
@@ -21,7 +32,7 @@ router
   .patch(userController.updateUser)
   .delete(
     authController.protect,
-    authController.restrictTo(["user", "lead-guide", "guide"]),
+    authController.restrictTo(["admin"]),
     userController.deleteUser
   );
 

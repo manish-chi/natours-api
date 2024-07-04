@@ -5,6 +5,36 @@ const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/mailer");
 const crypto = require("crypto");
 
+
+const createSendToken = (user, statusCode, res) => {
+  let id = user._id;
+  let token = jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+
+  if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
+
+  res.cookie("jwt", token, cookieOptions);
+
+  user.password = undefined;
+  user.passwordChangedAt = undefined;
+
+  return res.status(statusCode).json({
+    status: "success",
+    token,
+    data: {
+      user,
+    },
+  });
+};
+
 exports.signup = catchAsync(async (req, res, next) => {
   const user = await User.create({
     name: req.body.name,
@@ -14,12 +44,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     role: req.body.role,
   });
 
-  let token = signToken(user);
-
-  return res.status(201).json({
-    status: "success",
-    data: token,
-  });
+  return createSendToken(user, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -41,12 +66,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   req.user = user;
 
-  let token = signToken(user);
-
-  return res.status(201).json({
-    status: "success",
-    token: token,
-  });
+  return createSendToken(user, 200, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -81,7 +101,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   next();
 });
 
-exports.restrictTo = (...roles) => {
+exports.restrictTo = (roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       next(
@@ -180,10 +200,3 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
     message: "password updated!",
   });
 });
-
-const signToken = (user) => {
-  let id = user._id;
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-};

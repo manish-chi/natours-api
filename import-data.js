@@ -6,7 +6,7 @@ const dotenv = require("dotenv");
 dotenv.config({ path: "./config.env" });
 
 let tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`, "utf-8")
+  fs.readFileSync(`${__dirname}/dev-data/data/tours.json`, "utf-8")
 );
 
 let DBConnection = process.env.DATABASE_CONNECTION.replace(

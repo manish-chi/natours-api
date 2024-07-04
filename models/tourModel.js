@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
 const validator = require("validator");
+const User = require("../models/usermodel");
 
 let tourSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      unique : true,
+      unique: true,
       trim: true,
       required: [true, "a tour must have name."],
     },
@@ -70,6 +71,31 @@ let tourSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    startLocation: {
+      //GeoJson
+      type: {
+        type: String,
+        default: "Point",
+        enum: ["Point"],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: "Point",
+          enum: ["Point"],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    guides: Array,
     createdAt: {
       type: Date,
       default: Date.now(),
@@ -88,6 +114,13 @@ tourSchema.virtual("durationWeeks").get(function () {
 tourSchema.pre("save", function (next) {
   //this is document object in pre. middle ware.
   this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+tourSchema.pre("save", async function (next) {
+  let guideQueries = this.guides.map((id) => User.findById(id));
+  this.guides = await Promise.all(guideQueries);
+  console.log(this.guides);
   next();
 });
 
