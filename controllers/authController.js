@@ -3,7 +3,7 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/mailer");
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 exports.signup = catchAsync(async (req, res, next) => {
   const user = await User.create({
@@ -130,6 +130,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
   let resetToken = req.params.token;
+  console.log(resetToken);
   let passwordResetToken = crypto
     .createHash("sha256")
     .update(resetToken)
@@ -151,9 +152,33 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   return res.status(200).json({
-    status : 'success',
-    message : 'Your password has been successfully Reset!'
-  })
+    status: "success",
+    message: "Your password has been successfully reset!",
+  });
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  let user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    next(new AppError(404, "User is not found with required Id"));
+  }
+
+  if (!user.correctPassword(user, req.body.currentPassword)) {
+    next(
+      new AppError(403, "Password is incorrect! Please provide valid password")
+    );
+  }
+
+  user.password = user.password;
+  user.passwordConfirm = user.passwordConfirm;
+  user.passwordChangedAt = Date.now();
+
+  await user.save({ validateBeforeSave: false });
+
+  return res.status(200).json({
+    status: "success",
+    message: "password updated!",
+  });
 });
 
 const signToken = (user) => {
