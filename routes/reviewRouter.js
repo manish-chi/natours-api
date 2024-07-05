@@ -12,20 +12,20 @@ router.use(authController.protect);
 router
   .route("/")
   .post(
-    authController.restrictTo(["user"]),
+    authController.restrictTo("user"),
     reviewController.setTourUserIds,
     reviewController.createReview
   )
-  .get(authController.restrictTo(["user"]), reviewController.getAllReviews);
+  .get(authController.restrictTo("user"), reviewController.getAllReviews);
 
 router
   .route("/:id")
   .patch(
-    authController.restrictTo(["user", "admin"]),
+    authController.restrictTo("user", "admin"),
     reviewController.updateReview
   )
   .delete(
-    authController.restrictTo(["user", "admin"]),
+    authController.restrictTo("user", "admin"),
     reviewController.deleteReview
   );
 

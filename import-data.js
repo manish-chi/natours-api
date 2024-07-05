@@ -1,12 +1,22 @@
 const fs = require("fs");
 const mongoose = require("mongoose");
 const Tour = require("./models/tourModel");
+const User = require("./models/usermodel");
+const Review = require("./models/reviewModel");
 const dotenv = require("dotenv");
 
 dotenv.config({ path: "./config.env" });
 
 let tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours.json`, "utf-8")
+);
+
+let users = JSON.parse(
+  fs.readFileSync(`${__dirname}/dev-data/data/users.json`, "utf-8")
+);
+
+let reviews = JSON.parse(
+  fs.readFileSync(`${__dirname}/dev-data/data/reviews.json`, "utf-8")
 );
 
 let DBConnection = process.env.DATABASE_CONNECTION.replace(
@@ -34,7 +44,9 @@ mongoose
 let importData = async () => {
   try {
     await Tour.create(tours);
-    console.log(`Tours have been added successfully!😊`);
+    await User.create(users);
+    await Review.create(reviews);
+    console.log(`data have been added successfully!😊`);
   } catch (err) {
     console.log("Error Occured!");
   }
@@ -43,7 +55,9 @@ let importData = async () => {
 let deleteData = async () => {
   try {
     await Tour.deleteMany();
-    console.log(`Deleted All tours!`);
+    await User.deleteMany();
+    await Review.deleteMany();
+    console.log(`Deleted All data!`);
   } catch (err) {
     console.log("Error Occured!");
   }
