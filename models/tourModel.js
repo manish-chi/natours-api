@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const slugify = require("slugify");
 const validator = require("validator");
 const User = require("../models/usermodel");
+const Review = require("../models/reviewModel");
 
 let tourSchema = new mongoose.Schema(
   {
@@ -96,6 +97,7 @@ let tourSchema = new mongoose.Schema(
       },
     ],
     guides: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+    //reviews: [{ type: mongoose.Schema.ObjectId, ref: "Review" }],
     createdAt: {
       type: Date,
       default: Date.now(),
@@ -109,6 +111,13 @@ let tourSchema = new mongoose.Schema(
 
 tourSchema.virtual("durationWeeks").get(function () {
   return parseFloat((this.duration / 7).toFixed(2));
+});
+
+//virtual populate
+tourSchema.virtual("reviews", {
+  ref: "Review",
+  foreignField: "tour",
+  localField: "_id",
 });
 
 tourSchema.pre("save", function (next) {
@@ -130,8 +139,11 @@ tourSchema.pre(/^find/, function (next) {
   this.populate({
     path: "guides",
     select: "-__v",
-  });
-
+  }); 
+  // .populate({
+  //   path: "reviews",
+  //   select: "-__v",
+  // });
   next();
 });
 

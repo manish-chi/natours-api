@@ -66,7 +66,7 @@ exports.getAllTours = catchAsync(async (req, res) => {
 exports.getTour = catchAsync(async (req, res, next) => {
   //const id = new mongoose.Types.ObjectId(req.params.id);
 
-  let tour = await Tour.findById(req.params.id);
+  let tour = await Tour.findById(req.params.id).populate("reviews");
   console.log("This is the tour data:" + tour);
 
   if (!tour) {
