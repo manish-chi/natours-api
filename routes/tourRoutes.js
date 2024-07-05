@@ -7,8 +7,13 @@ const reviewRouter = require("../routes/reviewRouter");
 
 router
   .route("/")
-  .get(authController.protect, tourController.getAllTours)
-  .post(tourController.checkBody, tourController.createTour);
+  .get(tourController.getAllTours)
+  .post(
+    authController.protect,
+    authController.restrictTo(["admin", "lead-guide"]),
+    tourController.checkBody,
+    tourController.createTour
+  );
 
 // router
 //   .route("/:tourId/reviews")
@@ -18,14 +23,15 @@ router
 //     reviewController.createReview
 //   );
 
-router.use('/:tourId/reviews',reviewRouter);
+router.use("/:tourId/reviews", reviewRouter);
 
 router
   .route("/:id")
   .get(authController.protect, tourController.getTour)
   .patch(
     authController.protect,
-    authController.restrictTo(["user"]),
+    authController.protect,
+    authController.restrictTo(["admin", "lead-guide"]),
     tourController.updateTour
   )
   .delete(

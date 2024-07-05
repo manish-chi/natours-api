@@ -10,9 +10,10 @@ class AppFeatures {
     excludedList.forEach((ele) => delete queryObj[ele]);
     let queryString = JSON.stringify(queryObj);
 
-    queryString = queryString.replace(/\b(lt||lte||gte||gt)\b/, (match) => {
-      `$${match}`;
-    });
+    queryString = queryString.replace(
+      /\b(gte|gt|lte|lt)\b/g,
+      (match) => `$${match}`
+    );
 
     this.query = this.query.find(JSON.parse(queryString));
 

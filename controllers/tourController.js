@@ -3,6 +3,7 @@ const Tour = require("../models/tourModel");
 const AppFeatures = require("../utils/appFeatures");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const handlerFactory = require("./handlerFactory");
 
 // exports.CheckID = catchAsync(async (req, res, next, value) => {
 //   console.log(value);
@@ -47,74 +48,12 @@ function writeToFile(tours, tour, res) {
   );
 }
 
-exports.getAllTours = catchAsync(async (req, res) => {
-  const appFeatures = new AppFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limit()
-    .pagination();
+exports.getAllTours = handlerFactory.getAll(Tour);
 
-  //Excecute Query
-  let tours = await appFeatures.query;
+exports.getTour = handlerFactory.getOne(Tour, "reviews");
 
-  return res.status(200).json({
-    results: tours.length,
-    data: tours,
-  });
-});
+exports.createTour = handlerFactory.createOne(Tour);
 
-exports.getTour = catchAsync(async (req, res, next) => {
-  //const id = new mongoose.Types.ObjectId(req.params.id);
+exports.updateTour = handlerFactory.updateOne(Tour);
 
-  let tour = await Tour.findById(req.params.id).populate("reviews");
-  console.log("This is the tour data:" + tour);
-
-  if (!tour) {
-    return next(new AppError(404, "Invalid Id!"));
-  }
-  res.status(200).json({
-    status: "success",
-    data: tour,
-  });
-});
-
-exports.createTour = catchAsync(async (req, res) => {
-  let tour = req.body;
-  tour = await Tour.create(tour);
-  return res.status(200).json({
-    status: "success",
-    data: {
-      tour,
-    },
-  });
-});
-
-exports.updateTour = async (req, res, next) => {
-  let tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!tour) {
-    return next(new AppError(404, "No Document with given ID found!"));
-  }
-
-  return res.status(200).json({
-    status: "success",
-    message: "Tour have been updated",
-    data: tour,
-  });
-};
-
-exports.deleteTour = async (req, res) => {
-  let tour = await Tour.findByIdAndDelete(req.params.id);
-
-  if (!tour) {
-    return next(new AppError(404, "no valid ID formed!"));
-  }
-
-  return res.status(200).json({
-    status: "success",
-    data: tour,
-  });
-};
+exports.deleteTour = handlerFactory.deleteOne(Tour);

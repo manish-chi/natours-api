@@ -1,6 +1,7 @@
 const User = require("../models/usermodel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const handlerFactory = require("./handlerFactory");
 
 let filterBody = (req, ...allowedFields) => {
   let newUser = {};
@@ -11,6 +12,11 @@ let filterBody = (req, ...allowedFields) => {
   });
   return newUser;
 };
+
+exports.getMe = catchAsync(async (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+});
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   if (!req.user.name || !req.user.email) {
@@ -29,64 +35,20 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
   return res.status(200).json({
     status: "success",
-    data: {
-      users,
-    },
+    message: "user has been deleted!",
   });
 });
 
-exports.createUser = catchAsync(async (req, res, next) => {
-  const user = await User.create(req.body);
+exports.getAllUsers = handlerFactory.getAll(User, "name email");
 
-  return res.status(201).json({
-    status: "success",
-    data: user,
-  });
-});
+exports.createUser = handlerFactory.createOne(User);
 
-exports.getUser = catchAsync(async (req, res, next) => {
-  let user = await User.findById(req.params.id);
-  if (!user) throw new AppError(404, "User ID is invalid!");
+exports.getUser = handlerFactory.getOne(User);
 
-  return res.status(200).json({
-    status: "success",
-    data: {
-      user,
-    },
-  });
-});
+exports.updateUser = handlerFactory.updateOne(User);
 
-exports.updateUser = catchAsync(async (req, res, next) => {
-  let user = await User.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!user) throw new AppError(404, "User ID is invalid!");
-
-  return res.status(200).json({
-    status: "success",
-    data: {
-      user,
-    },
-  });
-});
-
-exports.deleteUser = catchAsync(async (req, res, next) => {
-  let user = await User.findByIdAndDelete(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-
-  return res.status(200).json({
-    status: "success",
-    message: "user is deleted!",
-    data: {
-      user,
-    },
-  });
-});
+exports.deleteUser = handlerFactory.deleteOne(User);
