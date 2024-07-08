@@ -15,14 +15,12 @@ DBConnection = DBConnection.replace(
 //console.log(DBConnection);
 
 //mongoose connection ---
-mongoose
-  .connect(DBConnection)
-  .then((conn) => {
-    //console.log(conn);
-    console.log("connected to mongodb successfully..");
-  });
+mongoose.connect(DBConnection).then((conn) => {
+  //console.log(conn);
+  console.log("connected to mongodb successfully..");
+});
 
-const port = process.env || 3000;
+const port = process.env.PORT || 3000;
 
 const server = app.listen(process.env, () => {
   console.log(`app is listening on port number: ${port}`);
