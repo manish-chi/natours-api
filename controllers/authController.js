@@ -5,7 +5,6 @@ const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/mailer");
 const crypto = require("crypto");
 
-
 const createSendToken = (user, statusCode, res) => {
   let id = user._id;
   let token = jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -26,7 +25,7 @@ const createSendToken = (user, statusCode, res) => {
   user.password = undefined;
   user.passwordChangedAt = undefined;
 
-  return res.status(statusCode).json({
+  res.status(statusCode).json({
     status: "success",
     token,
     data: {
@@ -44,7 +43,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     role: req.body.role,
   });
 
-  return createSendToken(user, 201, res);
+  createSendToken(user, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -54,19 +53,19 @@ exports.login = catchAsync(async (req, res, next) => {
     next(new AppError(400, "Missing email or password! try again"));
   }
 
-  let user = await User.findOne({ email: email });
+  let user = await User.findOne({ email: email }).select("+password");
 
   if (!user) {
     next(new AppError(400, "User with email address not found! try again!"));
   }
 
-  if (!user || !user.correctPassword(user, password)) {
+  if (!user || !(await user.correctPassword(user, password))) {
     next(new AppError(403, "Password is incorrect! Please try again"));
   }
 
   req.user = user;
 
-  return createSendToken(user, 200, res);
+  createSendToken(user, 200, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
