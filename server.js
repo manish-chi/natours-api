@@ -22,9 +22,9 @@ mongoose
     console.log("connected to mongodb successfully..");
   });
 
-let port = 3000;
+const port = process.env || 3000;
 
-const server = app.listen(port, () => {
+const server = app.listen(process.env, () => {
   console.log(`app is listening on port number: ${port}`);
 });
 
