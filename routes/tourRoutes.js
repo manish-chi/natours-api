@@ -11,7 +11,7 @@ router
   .post(
     authController.protect,
     authController.restrictTo(["admin", "lead-guide"]),
-    tourController.checkBody,
+    //tourController.checkBody,
     tourController.createTour
   );
 

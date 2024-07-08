@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const slugify = require("slugify");
 const validator = require("validator");
 const User = require("../models/usermodel");
-const Review = require("../models/reviewModel");
+//const Review = require("../models/reviewModel");
 
 let tourSchema = new mongoose.Schema(
   {
@@ -109,6 +109,10 @@ let tourSchema = new mongoose.Schema(
   }
 );
 
+//tourSchema.index({ price: 1 });
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+
 tourSchema.virtual("durationWeeks").get(function () {
   return parseFloat((this.duration / 7).toFixed(2));
 });
@@ -139,7 +143,7 @@ tourSchema.pre(/^find/, function (next) {
   this.populate({
     path: "guides",
     select: "-__v",
-  }); 
+  });
   // .populate({
   //   path: "reviews",
   //   select: "-__v",

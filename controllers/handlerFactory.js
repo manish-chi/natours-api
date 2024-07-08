@@ -72,7 +72,9 @@ exports.getAll = (Model, selectOptions) =>
     if (req.params.tourId) filter = { tour: req.params.tourId };
 
     let query = Model.find(filter);
+
     if (selectOptions) query = query.select(selectOptions);
+
     const appFeatures = new AppFeatures(query, req.query)
       .filter()
       .sort()
@@ -80,6 +82,8 @@ exports.getAll = (Model, selectOptions) =>
       .pagination();
 
     //Excecute Query
+    // let docs = await appFeatures.query.explain(); more infrmation about indexes...
+
     let docs = await appFeatures.query;
 
     if (docs.length == 0)

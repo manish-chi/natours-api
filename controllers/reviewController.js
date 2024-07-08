@@ -1,5 +1,4 @@
 const Review = require("../models/reviewModel");
-const catchAsync = require("../utils/catchAsync");
 const handlerFactory = require("./handlerFactory");
 
 exports.setTourUserIds = (req, res, next) => {
@@ -9,6 +8,7 @@ exports.setTourUserIds = (req, res, next) => {
 
   next();
 };
+
 
 exports.createReview = handlerFactory.createOne(Review);
 
